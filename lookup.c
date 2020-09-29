@@ -14,7 +14,7 @@ char *load_file_text(const char *fname)
 {
   //Check file name pointer
   if (!fname)
-    return printf("Error: NULL pointer!"), NULL;
+    return printf("Error: NULL pointer!\n"), NULL;
 
   //Get file meta information
   struct stat sb;
@@ -56,7 +56,6 @@ char *load_file_text(const char *fname)
 //
 static inline void release_file_text(char *t)
 {
-  if (t)
     free(t);
 }
 
@@ -96,8 +95,6 @@ void print_file_found(const char *s, const char *t, unsigned long long pos)
   printf("\033[1;32m");
   printf("%s", s);
   printf("\033[0m");
-  
-  printf("\n");
 }
 
 //Pass a string and a file name
@@ -107,24 +104,37 @@ int main(int argc, char **argv)
   if (argc < 3)
     return printf("Usage: %s [string] [file name]\n", argv[0]), 1;
 
-  //
   char *t = load_file_text(argv[2]);
 
-  //
-  if (t)
+  unsigned long long pos = 0;
+
+  char  *tmp = t;
+
+  unsigned char found = 0;
+  
+  do
     {
       //
-      unsigned long long pos = lookup_file_text(argv[1], t);
+      if (t)
+	{
+	  //
+	  pos = lookup_file_text(argv[1], t);
       
-      //
-      if (pos)
-	print_file_found(argv[1], t, pos - 1);
-      else
-	printf("Message: cannot find '%s' in file '%s'\n", argv[1], argv[2]);
+	  //
+	  if (pos)
+	    print_file_found(argv[1], t, pos - 1), found = 1;
       
-      release_file_text(t);
-    }
-  
-  //  
+     	  t = t + pos + strlen(argv[1]);
+	}
+    } while (pos);
+
+  if (!found)
+    printf("Message: cannot find '%s' in the file '%s'\n", argv[1], argv[2]);
+  else
+    puts(t);
+    
+  release_file_text(tmp);
+
+  //
   return 0;
 }
